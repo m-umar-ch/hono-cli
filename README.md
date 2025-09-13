@@ -17,6 +17,7 @@ A powerful command-line interface for managing Hono projects with TypeScript, pr
 
    ```bash
    git clone <this-repo-url> ~/scripts/hono
+   # git clone https://github.com/developer-256/hono-cli  ~/scripts/hono
    # or clone to any directory of your choice
    ```
 
