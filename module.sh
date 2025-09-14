@@ -47,7 +47,7 @@ mkdir controller service entity routes || { echo "❌ Failed to create subdirect
 cd controller
 touch index.ts
 cat >>index.ts <<EOF
-import { createRouter } from "@/lib/config/create-router.config";
+import { createRouter } from "@/lib/core/create-router";
 EOF
 
 for route in ${routes[@]}; do
@@ -175,9 +175,11 @@ for route in ${routes[@]}; do
   esac
 
   cat >>"${route}.ts" <<EOF
-import { OKResponse } from "@/lib/constants/open-api.constants";
 import { createRoute, RouteHandler } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
+import { APISchema } from "@/lib/schemas/api-schemas";
+import { HTTP } from "@/lib/http/status-codes";
+import { HONO_RESPONSE } from "@/lib/utils";
 
 export const ${route}_DTO = createRoute({
   path: "/${resource_name}",
@@ -185,12 +187,12 @@ export const ${route}_DTO = createRoute({
   tags: moduleTags.${resource_name},
   request: {},
   responses: {
-    ...OKResponse,
+    [HTTP.OK]: APISchema.OK,
   },
 });
 
 export const ${route}_Handler: RouteHandler<typeof ${route}_DTO> = async (c) => {
-  return c.json({ success: true });
+  return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 
 EOF

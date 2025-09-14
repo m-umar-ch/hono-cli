@@ -91,22 +91,24 @@ esac
 
 # Create route file
 cat >"${route_name}.ts" <<EOF
-import { OKResponse } from "@/lib/constants/open-api.constants";
 import { createRoute, RouteHandler } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
+import { APISchema } from "@/lib/schemas/api-schemas";
+import { HTTP } from "@/lib/http/status-codes";
+import { HONO_RESPONSE } from "@/lib/utils";
 
 export const ${route_name}_DTO = createRoute({
-  path: "",
+  path: "/${module_name}/${route_name}",
   method: "${method}",
   tags: moduleTags.${module_name},
   request: {},
   responses: {
-    ...OKResponse,
+    [HTTP.OK]: APISchema.OK,
   },
 });
 
 export const ${route_name}_Handler: RouteHandler<typeof ${route_name}_DTO> = async (c) => {
-  return c.json({ success: true });
+  return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 EOF
 
