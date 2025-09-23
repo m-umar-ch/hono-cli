@@ -57,12 +57,12 @@ if [ ! -f "$CONTROLLER_FILE" ]; then
 fi
 
 # Remove import statement
-sed -i "/import.*${route_name}_DTO.*${route_name}_Handler.*from.*\"..\/routes\/${route_name}\"/d" "$CONTROLLER_FILE"
+sed -i "/import.*${route_name}_Route.*${route_name}_Handler.*from.*\"..\/routes\/${route_name}\"/d" "$CONTROLLER_FILE"
 echo "✅ Removed import from controller"
 
 # Remove .openapi() call
 # Find and remove the line containing the route's openapi call
-sed -i "/\.openapi(${route_name}_DTO, ${route_name}_Handler)/d" "$CONTROLLER_FILE"
+sed -i "/\.openapi(${route_name}_Route, ${route_name}_Handler)/d" "$CONTROLLER_FILE"
 
 # Fix semicolon on the last remaining .openapi() call
 # Find the last .openapi() line and ensure it has a semicolon

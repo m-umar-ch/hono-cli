@@ -37,14 +37,14 @@ echo "✅ Removed module directory: ${module_name}/"
 TAGS_FILE="module.tags.ts"
 if [ -f "$TAGS_FILE" ]; then
   echo "🔧 Updating ${TAGS_FILE}..."
-  
+
   # Remove the module tag line (handle both with and without trailing comma)
   sed -i "/${module_name}: \[\".*\"\],\?/d" "$TAGS_FILE"
-  
+
   # Check if the moduleTags object is now empty and clean it up
   if ! grep -q ": \[" "$TAGS_FILE"; then
     # No modules left, create a clean empty object file
-    cat > "$TAGS_FILE" <<EOF
+    cat >"$TAGS_FILE" <<EOF
 export const moduleTags = {};
 EOF
     echo "✅ Created clean empty ${TAGS_FILE}"
@@ -67,18 +67,18 @@ EOF
     in_object && found_export && !/^[[:space:]]*$/ {
       print $0
     }
-    ' "$TAGS_FILE" > "$temp_file"
-    
+    ' "$TAGS_FILE" >"$temp_file"
+
     # Only replace if the temp file has content and looks valid
     if [ -s "$temp_file" ] && grep -q "export const moduleTags" "$temp_file"; then
       mv "$temp_file" "$TAGS_FILE"
     else
       rm -f "$temp_file"
     fi
-    
+
     echo "✅ Cleaned up ${TAGS_FILE}"
   fi
-  
+
   echo "✅ Removed ${module_name} tag from ${TAGS_FILE}"
 fi
 
@@ -90,7 +90,7 @@ if [ -f "$INDEX_FILE" ]; then
   # Remove import statement
   sed -i "/import.*${module_name}Controller.*from.*\"\.\/modules\/${module_name}\/controller\"/d" "$INDEX_FILE"
   echo "✅ Removed import from ${INDEX_FILE}"
-  
+
   # Remove controller from the controllers array
   # Handle different formatting styles
   if grep -q "const controllers: any = \[.*${module_name}Controller.*\];" "$INDEX_FILE"; then
@@ -100,7 +100,7 @@ if [ -f "$INDEX_FILE" ]; then
     # Multi-line array - remove the line containing the controller
     sed -i "/${module_name}Controller,\?/d" "$INDEX_FILE"
   fi
-  
+
   # Check if controllers array is now empty and clean it up
   if grep -q "const controllers: any = \[\s*\];" "$INDEX_FILE"; then
     sed -i "s/const controllers: any = \[.*\];/const controllers: any = [];/" "$INDEX_FILE"
@@ -111,7 +111,7 @@ if [ -f "$INDEX_FILE" ]; then
       sed -i '/const controllers: any = \[/,/^];$/c\const controllers: any = [];' "$INDEX_FILE"
     fi
   fi
-  
+
   echo "✅ Removed ${module_name}Controller from controllers array"
 fi
 

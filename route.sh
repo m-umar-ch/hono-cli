@@ -46,47 +46,47 @@ cd "${module_name}/routes"
 
 # Determine HTTP method from route name
 case "$route_name" in
-  "GET_ONE"|"GET_PROFILE"|"GET_"*)
-    method="get"
-    ;;
-  "POST_"*|"POST")
-    method="post"
-    ;;
-  "PUT_"*|"PUT")
-    method="put"
-    ;;
-  "PATCH_"*|"PATCH")
-    method="patch"
-    ;;
-  "DELETE_"*|"DELETE")
-    method="delete"
-    ;;
-  *)
-    # Default case: try to extract method from route name, fallback to post
-    if [[ "$route_name" == *"_"* ]]; then
-      first_part=$(echo "$route_name" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
-      # Check if the first part is a valid HTTP method
-      case "$first_part" in
-        "get"|"post"|"put"|"patch"|"delete"|"head"|"options")
-          method="$first_part"
-          ;;
-        *)
-          method="post"  # Default to POST for unrecognized patterns
-          ;;
-      esac
-    else
-      # Single word routes default to post unless they match a known method
-      method_lower=${route_name,,}
-      case "$method_lower" in
-        "get"|"post"|"put"|"patch"|"delete"|"head"|"options")
-          method="$method_lower"
-          ;;
-        *)
-          method="post"  # Default to POST for unrecognized single words
-          ;;
-      esac
-    fi
-    ;;
+"GET_ONE" | "GET_PROFILE" | "GET_"*)
+  method="get"
+  ;;
+"POST_"* | "POST")
+  method="post"
+  ;;
+"PUT_"* | "PUT")
+  method="put"
+  ;;
+"PATCH_"* | "PATCH")
+  method="patch"
+  ;;
+"DELETE_"* | "DELETE")
+  method="delete"
+  ;;
+*)
+  # Default case: try to extract method from route name, fallback to post
+  if [[ "$route_name" == *"_"* ]]; then
+    first_part=$(echo "$route_name" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
+    # Check if the first part is a valid HTTP method
+    case "$first_part" in
+    "get" | "post" | "put" | "patch" | "delete" | "head" | "options")
+      method="$first_part"
+      ;;
+    *)
+      method="post" # Default to POST for unrecognized patterns
+      ;;
+    esac
+  else
+    # Single word routes default to post unless they match a known method
+    method_lower=${route_name,,}
+    case "$method_lower" in
+    "get" | "post" | "put" | "patch" | "delete" | "head" | "options")
+      method="$method_lower"
+      ;;
+    *)
+      method="post" # Default to POST for unrecognized single words
+      ;;
+    esac
+  fi
+  ;;
 esac
 
 # Create route file
@@ -97,7 +97,7 @@ import { APISchema } from "@/lib/schemas/api-schemas";
 import { HTTP } from "@/lib/http/status-codes";
 import { HONO_RESPONSE } from "@/lib/utils";
 
-export const ${route_name}_DTO = createRoute({
+export const ${route_name}_Route = createRoute({
   path: "/${module_name}/${route_name}",
   method: "${method}",
   tags: moduleTags.${module_name},
@@ -107,7 +107,7 @@ export const ${route_name}_DTO = createRoute({
   },
 });
 
-export const ${route_name}_Handler: RouteHandler<typeof ${route_name}_DTO> = async (c) => {
+export const ${route_name}_Handler: RouteHandler<typeof ${route_name}_Route> = async (c) => {
   return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 EOF
@@ -124,7 +124,7 @@ if [ ! -f "$CONTROLLER_FILE" ]; then
 fi
 
 # Add import statement after the last import from routes
-IMPORT_LINE="import { ${route_name}_DTO, ${route_name}_Handler } from \"../routes/${route_name}\";"
+IMPORT_LINE="import { ${route_name}_Route, ${route_name}_Handler } from \"../routes/${route_name}\";"
 LAST_ROUTES_IMPORT=$(grep -n "from \"../routes/" "$CONTROLLER_FILE" | tail -1 | cut -d: -f1)
 
 if [ -n "$LAST_ROUTES_IMPORT" ]; then
@@ -145,9 +145,9 @@ LAST_OPENAPI_LINE=$(grep -n "\.openapi(" "$CONTROLLER_FILE" | tail -1 | cut -d: 
 if [ -n "$LAST_OPENAPI_LINE" ]; then
   # Remove semicolon from the last .openapi() line if it exists
   sed -i "${LAST_OPENAPI_LINE}s/;$//" "$CONTROLLER_FILE"
-  
+
   # Add new .openapi() call with semicolon
-  sed -i "${LAST_OPENAPI_LINE}a\\  .openapi(${route_name}_DTO, ${route_name}_Handler);" "$CONTROLLER_FILE"
+  sed -i "${LAST_OPENAPI_LINE}a\\  .openapi(${route_name}_Route, ${route_name}_Handler);" "$CONTROLLER_FILE"
 else
   echo "❌ Error: Could not find existing .openapi() calls in controller"
   exit 1

@@ -39,10 +39,19 @@ cleanup() {
 
 trap cleanup EXIT
 
-mkdir "$resource_name" || { echo "❌ Failed to create module directory"; exit 1; }
-cd "$resource_name" || { echo "❌ Failed to enter module directory"; exit 1; }
+mkdir "$resource_name" || {
+  echo "❌ Failed to create module directory"
+  exit 1
+}
+cd "$resource_name" || {
+  echo "❌ Failed to enter module directory"
+  exit 1
+}
 
-mkdir controller service entity routes || { echo "❌ Failed to create subdirectories"; exit 1; }
+mkdir controller service entity routes || {
+  echo "❌ Failed to create subdirectories"
+  exit 1
+}
 
 cd controller
 touch index.ts
@@ -51,7 +60,7 @@ import { createRouter } from "@/lib/core/create-router";
 EOF
 
 for route in ${routes[@]}; do
-  echo "import { ${route}_DTO, ${route}_Handler } from \"../routes/${route}\";" >>index.ts
+  echo "import { ${route}_Route, ${route}_Handler } from \"../routes/${route}\";" >>index.ts
 done
 
 cat >>index.ts <<EOF
@@ -65,10 +74,10 @@ for i in "${!routes[@]}"; do
   route="${routes[$i]}"
   if [ $i -eq $((route_count - 1)) ]; then
     # Last route gets semicolon
-    echo "  .openapi(${route}_DTO, ${route}_Handler);" >>index.ts
+    echo "  .openapi(${route}_Route, ${route}_Handler);" >>index.ts
   else
     # Other routes without semicolon
-    echo "  .openapi(${route}_DTO, ${route}_Handler)" >>index.ts
+    echo "  .openapi(${route}_Route, ${route}_Handler)" >>index.ts
   fi
 done
 
@@ -131,47 +140,47 @@ for route in ${routes[@]}; do
   touch "${route}.ts"
 
   case "$route" in
-    "GET_ONE"|"GET_PROFILE"|"GET_"*)
-      method="get"
-      ;;
-    "POST_"*|"POST")
-      method="post"
-      ;;
-    "PUT_"*|"PUT")
-      method="put"
-      ;;
-    "PATCH_"*|"PATCH")
-      method="patch"
-      ;;
-    "DELETE_"*|"DELETE")
-      method="delete"
-      ;;
-    *)
-      # Default case: try to extract method from route name, fallback to post
-      if [[ "$route" == *"_"* ]]; then
-        first_part=$(echo "$route" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
-        # Check if the first part is a valid HTTP method
-        case "$first_part" in
-          "get"|"post"|"put"|"patch"|"delete"|"head"|"options")
-            method="$first_part"
-            ;;
-          *)
-            method="post"  # Default to POST for unrecognized patterns
-            ;;
-        esac
-      else
-        # Single word routes default to post unless they match a known method
-        method_lower=${route,,}
-        case "$method_lower" in
-          "get"|"post"|"put"|"patch"|"delete"|"head"|"options")
-            method="$method_lower"
-            ;;
-          *)
-            method="post"  # Default to POST for unrecognized single words
-            ;;
-        esac
-      fi
-      ;;
+  "GET_ONE" | "GET_PROFILE" | "GET_"*)
+    method="get"
+    ;;
+  "POST_"* | "POST")
+    method="post"
+    ;;
+  "PUT_"* | "PUT")
+    method="put"
+    ;;
+  "PATCH_"* | "PATCH")
+    method="patch"
+    ;;
+  "DELETE_"* | "DELETE")
+    method="delete"
+    ;;
+  *)
+    # Default case: try to extract method from route name, fallback to post
+    if [[ "$route" == *"_"* ]]; then
+      first_part=$(echo "$route" | cut -d'_' -f1 | tr '[:upper:]' '[:lower:]')
+      # Check if the first part is a valid HTTP method
+      case "$first_part" in
+      "get" | "post" | "put" | "patch" | "delete" | "head" | "options")
+        method="$first_part"
+        ;;
+      *)
+        method="post" # Default to POST for unrecognized patterns
+        ;;
+      esac
+    else
+      # Single word routes default to post unless they match a known method
+      method_lower=${route,,}
+      case "$method_lower" in
+      "get" | "post" | "put" | "patch" | "delete" | "head" | "options")
+        method="$method_lower"
+        ;;
+      *)
+        method="post" # Default to POST for unrecognized single words
+        ;;
+      esac
+    fi
+    ;;
   esac
 
   cat >>"${route}.ts" <<EOF
@@ -181,7 +190,7 @@ import { APISchema } from "@/lib/schemas/api-schemas";
 import { HTTP } from "@/lib/http/status-codes";
 import { HONO_RESPONSE } from "@/lib/utils";
 
-export const ${route}_DTO = createRoute({
+export const ${route}_Route = createRoute({
   path: "/${resource_name}",
   method: "${method}",
   tags: moduleTags.${resource_name},
@@ -191,7 +200,7 @@ export const ${route}_DTO = createRoute({
   },
 });
 
-export const ${route}_Handler: RouteHandler<typeof ${route}_DTO> = async (c) => {
+export const ${route}_Handler: RouteHandler<typeof ${route}_Route> = async (c) => {
   return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 
@@ -226,7 +235,7 @@ else
   fi
 fi
 
-# Update src/index.ts with new controller  
+# Update src/index.ts with new controller
 cd ../
 INDEX_FILE="index.ts"
 
@@ -258,11 +267,11 @@ fi
 DB_SCHEMA_INDEX="db/schema/index.ts"
 if [ -f "$DB_SCHEMA_INDEX" ]; then
   SCHEMA_EXPORT_LINE="export * from \"@/modules/${resource_name}/entity\";"
-  
+
   # Check if export already exists
   if ! grep -q "export \* from \"@/modules/${resource_name}/entity\"" "$DB_SCHEMA_INDEX"; then
     # Add export to the file
-    echo "$SCHEMA_EXPORT_LINE" >> "$DB_SCHEMA_INDEX"
+    echo "$SCHEMA_EXPORT_LINE" >>"$DB_SCHEMA_INDEX"
     echo "✅ Added schema export to ${DB_SCHEMA_INDEX}"
   fi
 else
