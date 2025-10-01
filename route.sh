@@ -36,8 +36,11 @@ if [ ! -d "${module_name}" ]; then
   exit 1
 fi
 
+# Convert route name to lowercase-hyphen format for file naming
+route_file=$(echo "$route_name" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+
 # Check if route already exists
-if [ -f "${module_name}/routes/${route_name}.ts" ]; then
+if [ -f "${module_name}/routes/${route_file}.${module_name}.route.ts" ]; then
   echo "❌ Error: Route ${route_name} already exists in module ${module_name}"
   exit 1
 fi
@@ -90,7 +93,7 @@ case "$route_name" in
 esac
 
 # Create route file
-cat >"${route_name}.ts" <<EOF
+cat >"${route_file}.${module_name}.route.ts" <<EOF
 import { createRoute, RouteHandler } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
 import { APISchema } from "@/lib/schemas/api-schemas";
@@ -112,19 +115,19 @@ export const ${route_name}_Handler: RouteHandler<typeof ${route_name}_Route> = a
 };
 EOF
 
-echo "✅ Created route file: ${module_name}/routes/${route_name}.ts"
+echo "✅ Created route file: ${module_name}/routes/${route_file}.${module_name}.route.ts"
 
-# Update controller index.ts
+# Update controller
 cd ../controller
-CONTROLLER_FILE="index.ts"
+CONTROLLER_FILE="${module_name}.controller.ts"
 
 if [ ! -f "$CONTROLLER_FILE" ]; then
-  echo "❌ Error: Controller file not found: ${module_name}/controller/index.ts"
+  echo "❌ Error: Controller file not found: ${module_name}/controller/${module_name}.controller.ts"
   exit 1
 fi
 
 # Add import statement after the last import from routes
-IMPORT_LINE="import { ${route_name}_Route, ${route_name}_Handler } from \"../routes/${route_name}\";"
+IMPORT_LINE="import { ${route_name}_Route, ${route_name}_Handler } from \"../routes/${route_file}.${module_name}.route\";"
 LAST_ROUTES_IMPORT=$(grep -n "from \"../routes/" "$CONTROLLER_FILE" | tail -1 | cut -d: -f1)
 
 if [ -n "$LAST_ROUTES_IMPORT" ]; then
@@ -136,7 +139,7 @@ else
   sed -i "${LAST_IMPORT_LINE}a\\${IMPORT_LINE}" "$CONTROLLER_FILE"
 fi
 
-echo "✅ Added import to controller: ${module_name}/controller/index.ts"
+echo "✅ Added import to controller: ${module_name}/controller/${module_name}.controller.ts"
 
 # Add .openapi() call to the controller
 # Find the last .openapi() line and handle semicolon properly

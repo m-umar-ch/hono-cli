@@ -82,13 +82,13 @@ EOF
   echo "✅ Removed ${module_name} tag from ${TAGS_FILE}"
 fi
 
-# Update src/index.ts
+# Update src/main.ts
 cd ../
-INDEX_FILE="index.ts"
+INDEX_FILE="main.ts"
 
 if [ -f "$INDEX_FILE" ]; then
   # Remove import statement
-  sed -i "/import.*${module_name}Controller.*from.*\"\.\/modules\/${module_name}\/controller\"/d" "$INDEX_FILE"
+  sed -i "/import.*${module_name}Controller.*from.*\"\.\/modules\/${module_name}\/controller\/${module_name}\.controller\"/d" "$INDEX_FILE"
   echo "✅ Removed import from ${INDEX_FILE}"
 
   # Remove controller from the controllers array
@@ -119,7 +119,7 @@ fi
 DB_SCHEMA_INDEX="db/schema/index.ts"
 if [ -f "$DB_SCHEMA_INDEX" ]; then
   # Remove the export line for this module
-  sed -i "/export \* from \"@\/modules\/${module_name}\/entity\";/d" "$DB_SCHEMA_INDEX"
+  sed -i "/export \* from \"@\/modules\/${module_name}\/entity\/${module_name}\.entity\";/d" "$DB_SCHEMA_INDEX"
   echo "✅ Removed schema export from ${DB_SCHEMA_INDEX}"
 else
   echo "⚠️  Warning: ${DB_SCHEMA_INDEX} not found - skipping schema export removal"

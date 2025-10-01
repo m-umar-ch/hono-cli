@@ -1,0 +1,67 @@
+# Naming Conventions
+
+## Module Structure
+
+Follow NestJS naming conventions for all modules:
+
+### File Naming Patterns
+
+- **Controllers**: `{module}.controller.ts`
+- **Services**: `{module}.service.ts`
+- **Entities**: `{module}.entity.ts`
+- **Routes**: `{action}.{module}.route.ts`
+
+### Examples
+
+```
+src/modules/auth/
+├── controller/
+│   └── auth.controller.ts
+├── service/
+│   ├── auth.service.ts
+│   ├── auth.ts
+│   └── auth-client.ts
+├── entity/
+│   └── auth.entity.ts
+└── routes/
+    ├── admin.auth.route.ts
+    ├── auth.auth.route.ts
+    └── session.auth.route.ts
+```
+
+### Import Conventions
+
+- Always import from specific files, not index files
+- Use full file paths: `from "@/modules/user/service/user.service"`
+- Avoid generic `index.ts` exports for main module files
+
+### Route Naming
+
+- Use lowercase with hyphens for multi-word actions
+- Format: `{http-method}.{module}.route.ts` or `{action}.{module}.route.ts`
+- Examples:
+  - `get.user.route.ts`
+  - `post.user.route.ts`
+  - `delete.user.route.ts`
+  - `get-one.user.route.ts`
+  - `profile.user.route.ts`
+
+### Variable and Function Naming
+
+- Use camelCase for variables and functions
+- Use PascalCase for classes and interfaces
+- Use UPPER_SNAKE_CASE for constants
+- Prefix interfaces with `I` only when needed for disambiguation
+
+### Export Naming
+
+- Controllers: `{module}Controller`
+- Services: `{Module}Service` (class) or default export
+- Entities: descriptive table names in camelCase
+
+## Consistency Rules
+
+1. All module files must follow the established pattern
+2. No generic `index.ts` files for main module components
+3. Import paths must be explicit and complete
+4. Route files must include the module name in the filename

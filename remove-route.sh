@@ -35,8 +35,11 @@ if [ ! -d "${module_name}" ]; then
   exit 1
 fi
 
+# Convert route name to lowercase-hyphen format for file naming
+route_file=$(echo "$route_name" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+
 # Check if route exists
-if [ ! -f "${module_name}/routes/${route_name}.ts" ]; then
+if [ ! -f "${module_name}/routes/${route_file}.${module_name}.route.ts" ]; then
   echo "❌ Error: Route ${route_name} does not exist in module ${module_name}"
   exit 1
 fi
@@ -44,20 +47,20 @@ fi
 echo "🗑️  Removing route ${route_name} from module ${module_name}..."
 
 # Remove the route file
-rm "${module_name}/routes/${route_name}.ts"
-echo "✅ Removed route file: ${module_name}/routes/${route_name}.ts"
+rm "${module_name}/routes/${route_file}.${module_name}.route.ts"
+echo "✅ Removed route file: ${module_name}/routes/${route_file}.${module_name}.route.ts"
 
-# Update controller index.ts
+# Update controller
 cd "${module_name}/controller"
-CONTROLLER_FILE="index.ts"
+CONTROLLER_FILE="${module_name}.controller.ts"
 
 if [ ! -f "$CONTROLLER_FILE" ]; then
-  echo "❌ Error: Controller file not found: ${module_name}/controller/index.ts"
+  echo "❌ Error: Controller file not found: ${module_name}/controller/${module_name}.controller.ts"
   exit 1
 fi
 
 # Remove import statement
-sed -i "/import.*${route_name}_Route.*${route_name}_Handler.*from.*\"..\/routes\/${route_name}\"/d" "$CONTROLLER_FILE"
+sed -i "/import.*${route_name}_Route.*${route_name}_Handler.*from.*\"..\/routes\/${route_file}\.${module_name}\.route\"/d" "$CONTROLLER_FILE"
 echo "✅ Removed import from controller"
 
 # Remove .openapi() call

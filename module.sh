@@ -54,16 +54,18 @@ mkdir controller service entity routes || {
 }
 
 cd controller
-touch index.ts
-cat >>index.ts <<EOF
+touch ${resource_name}.controller.ts
+cat >>${resource_name}.controller.ts <<EOF
 import { createRouter } from "@/lib/core/create-router";
 EOF
 
 for route in ${routes[@]}; do
-  echo "import { ${route}_Route, ${route}_Handler } from \"../routes/${route}\";" >>index.ts
+  # Convert route name to lowercase-hyphen format for file naming
+  route_file=$(echo "$route" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+  echo "import { ${route}_Route, ${route}_Handler } from \"../routes/${route_file}.${resource_name}.route\";" >>${resource_name}.controller.ts
 done
 
-cat >>index.ts <<EOF
+cat >>${resource_name}.controller.ts <<EOF
 
 export const ${resource_name}Controller = createRouter()
 EOF
@@ -74,16 +76,16 @@ for i in "${!routes[@]}"; do
   route="${routes[$i]}"
   if [ $i -eq $((route_count - 1)) ]; then
     # Last route gets semicolon
-    echo "  .openapi(${route}_Route, ${route}_Handler);" >>index.ts
+    echo "  .openapi(${route}_Route, ${route}_Handler);" >>${resource_name}.controller.ts
   else
     # Other routes without semicolon
-    echo "  .openapi(${route}_Route, ${route}_Handler)" >>index.ts
+    echo "  .openapi(${route}_Route, ${route}_Handler)" >>${resource_name}.controller.ts
   fi
 done
 
 cd ../entity
-touch index.ts
-cat >>index.ts <<EOF
+touch ${resource_name}.entity.ts
+cat >>${resource_name}.entity.ts <<EOF
 import { index, serial } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
@@ -137,7 +139,9 @@ EOF
 cd ../routes
 
 for route in ${routes[@]}; do
-  touch "${route}.ts"
+  # Convert route name to lowercase-hyphen format for file naming
+  route_file=$(echo "$route" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+  touch "${route_file}.${resource_name}.route.ts"
 
   case "$route" in
   "GET_ONE" | "GET_PROFILE" | "GET_"*)
@@ -183,7 +187,7 @@ for route in ${routes[@]}; do
     ;;
   esac
 
-  cat >>"${route}.ts" <<EOF
+  cat >>"${route_file}.${resource_name}.route.ts" <<EOF
 import { createRoute, RouteHandler } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
 import { APISchema } from "@/lib/schemas/api-schemas";
@@ -235,12 +239,12 @@ else
   fi
 fi
 
-# Update src/index.ts with new controller
+# Update src/main.ts with new controller
 cd ../
-INDEX_FILE="index.ts"
+INDEX_FILE="main.ts"
 
 # Add import statement after the last import
-IMPORT_LINE="import { ${resource_name}Controller } from \"./modules/${resource_name}/controller\";"
+IMPORT_LINE="import { ${resource_name}Controller } from \"./modules/${resource_name}/controller/${resource_name}.controller\";"
 LAST_IMPORT_LINE=$(grep -n "^import" "$INDEX_FILE" | tail -1 | cut -d: -f1)
 sed -i "${LAST_IMPORT_LINE}a\\
 ${IMPORT_LINE}" "$INDEX_FILE"
@@ -266,10 +270,10 @@ fi
 # Update src/db/schema/index.ts with new entity export
 DB_SCHEMA_INDEX="db/schema/index.ts"
 if [ -f "$DB_SCHEMA_INDEX" ]; then
-  SCHEMA_EXPORT_LINE="export * from \"@/modules/${resource_name}/entity\";"
+  SCHEMA_EXPORT_LINE="export * from \"@/modules/${resource_name}/entity/${resource_name}.entity\";"
 
   # Check if export already exists
-  if ! grep -q "export \* from \"@/modules/${resource_name}/entity\"" "$DB_SCHEMA_INDEX"; then
+  if ! grep -q "export \* from \"@/modules/${resource_name}/entity/${resource_name}.entity\"" "$DB_SCHEMA_INDEX"; then
     # Add export to the file
     echo "$SCHEMA_EXPORT_LINE" >>"$DB_SCHEMA_INDEX"
     echo "✅ Added schema export to ${DB_SCHEMA_INDEX}"
