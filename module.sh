@@ -188,11 +188,12 @@ for route in ${routes[@]}; do
   esac
 
   cat >>"${route_file}.${resource_name}.route.ts" <<EOF
-import { createRoute, RouteHandler } from "@hono/zod-openapi";
+import { createRoute } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
 import { APISchema } from "@/lib/schemas/api-schemas";
 import { HTTP } from "@/lib/http/status-codes";
 import { HONO_RESPONSE } from "@/lib/utils";
+import { AppRouteHandler } from "@/lib/core/create-router";
 
 export const ${route}_Route = createRoute({
   path: "/${resource_name}",
@@ -204,7 +205,7 @@ export const ${route}_Route = createRoute({
   },
 });
 
-export const ${route}_Handler: RouteHandler<typeof ${route}_Route> = async (c) => {
+export const ${route}_Handler: AppRouteHandler<typeof ${route}_Route> = async (c) => {
   return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 

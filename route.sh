@@ -94,11 +94,12 @@ esac
 
 # Create route file
 cat >"${route_file}.${module_name}.route.ts" <<EOF
-import { createRoute, RouteHandler } from "@hono/zod-openapi";
+import { createRoute } from "@hono/zod-openapi";
 import { moduleTags } from "../../module.tags";
 import { APISchema } from "@/lib/schemas/api-schemas";
 import { HTTP } from "@/lib/http/status-codes";
 import { HONO_RESPONSE } from "@/lib/utils";
+import { AppRouteHandler } from "@/lib/core/create-router";
 
 export const ${route_name}_Route = createRoute({
   path: "/${module_name}/${route_name}",
@@ -110,7 +111,7 @@ export const ${route_name}_Route = createRoute({
   },
 });
 
-export const ${route_name}_Handler: RouteHandler<typeof ${route_name}_Route> = async (c) => {
+export const ${route_name}_Handler: AppRouteHandler<typeof ${route_name}_Route> = async (c) => {
   return c.json(HONO_RESPONSE(), HTTP.OK);
 };
 EOF
