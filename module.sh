@@ -86,7 +86,7 @@ done
 cd ../entity
 touch ${resource_name}.entity.ts
 cat >>${resource_name}.entity.ts <<EOF
-import { index, uuid } from "drizzle-orm/pg-core";
+import { index, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 import { createTable } from "@/db/extras/db.utils";
@@ -95,6 +95,11 @@ export const ${resource_name} = createTable(
   "${resource_name}",
   {
     id: uuid("id").defaultRandom().primaryKey(),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at")
+      .defaultNow()
+      .$onUpdate(() => new Date())
+      .notNull(),
   },
   (table) => [index().on(table.id)]
 );
