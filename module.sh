@@ -90,6 +90,8 @@ import { index, timestamp, uuid } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import type { InferSelectModel } from "drizzle-orm";
 import { createTable } from "@/db/extras/db.utils";
+import { createSelectSchema } from "drizzle-zod";
+import { toZodV4SchemaTyped } from "@/lib/utils/zod-utils";
 
 export const ${resource_name} = createTable(
   "${resource_name}",
@@ -108,6 +110,7 @@ export const ${resource_name}Relations = relations(${resource_name}, ({ many, on
 
 export type ${resource_name^}TableType = InferSelectModel<typeof ${resource_name}>;
 
+export const ${resource_name^}Schema = toZodV4SchemaTyped(createSelectSchema(${resource_name}));
 EOF
 
 # Create service template
