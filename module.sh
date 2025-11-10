@@ -100,7 +100,7 @@ export const ${resource_name} = createTable(
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at")
       .defaultNow()
-      .$onUpdate(() => new Date())
+      .\$onUpdate(() => new Date())
       .notNull(),
   },
   (table) => [index().on(table.id)]
