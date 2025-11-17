@@ -197,11 +197,11 @@ for route in ${routes[@]}; do
 
   cat >>"${route_file}.${resource_name}.route.ts" <<EOF
 import { createRoute } from "@hono/zod-openapi";
-import { moduleTags } from "../../module.tags";
-import { APISchema } from "@/lib/schemas/api-schemas";
+import type { AppRouteHandler } from "@/lib/core/create-router";
 import { HTTP } from "@/lib/http/status-codes";
+import { APISchema } from "@/lib/schemas/api-schemas";
 import { HONO_RESPONSE } from "@/lib/utils";
-import { AppRouteHandler } from "@/lib/core/create-router";
+import { moduleTags } from "../../module.tags";
 
 export const ${route}_Route = createRoute({
   path: "/${resource_name}",
