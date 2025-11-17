@@ -214,7 +214,7 @@ export const ${route}_Route = createRoute({
 });
 
 export const ${route}_Handler: AppRouteHandler<typeof ${route}_Route> = async (c) => {
-  return c.json(HONO_RESPONSE(), HTTP.OK);
+  return HONO_RESPONSE(c);
 };
 
 EOF
